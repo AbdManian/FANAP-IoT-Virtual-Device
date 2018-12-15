@@ -1,0 +1,17 @@
+{
+  "device_id": "ABED100",
+  
+  "enc_key": "EFEFDE23",
+
+  "enc_enable": true,
+
+  "description":"Optional description for device",
+
+  "attributeTypes": [
+    {"name":"f_bool", "type":"Boolean"},
+    {"name":"f_num", "type":"Number"},
+    {"name":"f_str", "type":"String"},
+    {"name":"f_enum", "type":["enum1", "enum2"]}
+  ]
+
+}
