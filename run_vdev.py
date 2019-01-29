@@ -39,7 +39,9 @@ def setup_command_args():
         default='device.json')
 
     parser.add_argument('param_value', metavar='param_value', 
-        help='Commands for sending to the platform. Format PARAM=VALUE, use PARAM=\\"STRING_VAL\\" for string values.',
+        help='Commands for sending to the platform. \
+        Format PARAM=VALUE, use PARAM=\\"STRING_VAL\\" or PARAM=\'"STRING_VAL"\' for string values.\
+        In MS Windows use PARAM="""STRING_VAL"""',
         nargs='*')
 
     parser.add_argument('-D', metavar='device-id', dest='device_id', type=str,
@@ -65,6 +67,9 @@ def setup_command_args():
 
     return parser.parse_args()
 
+def show_press_ctrlc():
+    print("Press CTRL+C to quit")
+
 def wait_for_tx_done(dev, tx_script):
 
     if tx_script:
@@ -72,7 +77,14 @@ def wait_for_tx_done(dev, tx_script):
 
         tgen = TrafficGen(tx_script, dev.device_type_dic)
         tgen.start()
-        dev.send_to_platform_from_queue(tgen.get_queue())
+
+        show_press_ctrlc()
+        try:
+            dev.send_to_platform_from_queue(tgen.get_queue())
+        except KeyboardInterrupt:
+            tgen.end()
+            logger.info('Done!')
+
 
     else:
         tx_ok = False
@@ -93,7 +105,7 @@ def wait_for_subscribe_mode(dev, gui):
         import tkinter
 
         root = tkinter.Tk()
-        app = vui.Vui(root, dev.device_attribute_type_list, dev.get_deviceid())
+        app = vui.Vui(root, dev.device_attribute_type_list, dev.get_deviceid(), dev.loop)
 
         dev_logger = dev.get_logger()
 
@@ -108,8 +120,14 @@ def wait_for_subscribe_mode(dev, gui):
         dev.set_update_function(app.update_with_data_dic)
         root.mainloop()
     else:
-        while not dev.is_stopped():
-            time.sleep(1)
+        show_press_ctrlc()
+        try:
+            while not dev.is_stopped():
+                time.sleep(1)            
+        except KeyboardInterrupt:
+            logger.info('Done!')
+        
+
 
 
 def run_vdev(args):
