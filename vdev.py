@@ -16,6 +16,7 @@ QM_SCAPE = '@$?@$'
 
 
 class Vdev:
+    DATA_FIELD = 'data'
 
     def __init__(self, platform_file, dev_file,
         enable_subscribe=True,
@@ -41,7 +42,8 @@ class Vdev:
 
         if self.enc_en:
             import pyDes
-            self.des = pyDes.des(self.enc_key, pyDes.ECB, padmode=pyDes.PAD_PKCS5)
+            key = (self.enc_key + '0'*8)[:8]
+            self.des = pyDes.des(key, pyDes.ECB, padmode=pyDes.PAD_PKCS5)
 
     def process_config_files(self, platform_file, dev_file):
 
@@ -200,10 +202,10 @@ class Vdev:
         self.process_platform_message(msg.topic, payload)
 
     def get_p2d_topic(self):
-        return self.device_id + ('/p2d' if not self.loop else '/d2p')
+        return '/{}/{}'.format(self.device_id, ('p2d' if not self.loop else 'd2p'))
 
     def get_d2p_topic(self):
-        return self.device_id + ('/d2p' if not self.loop else '/p2d')
+        return '/{}/{}'.format(self.device_id, ('d2p' if not self.loop else 'p2d'))
 
     def decode_platform_message(self, message):
 
@@ -219,20 +221,21 @@ class Vdev:
             return ""
 
         
-        if not 'DATA' in msg_data:
-            self.error_report('"DATA" is missing in platform message {}'.format(msg_data))
+        if not Vdev.DATA_FIELD in msg_data:
+            self.error_report('"{}" is missing in platform message {}'.format(Vdev.DATA_FIELD, msg_data))
             return ""
         
-        data_list = msg_data['DATA']
+        data_list = msg_data[Vdev.DATA_FIELD]
 
         if not isinstance(data_list, list):
-            self.error_report('"DATA" field should be list {}'.format(data_list))
-            return ""
+            data_list = [data_list]
+            # self.error_report('"DATA" field should be list {}'.format(data_list))
+            # return ""
         
         # All entries in data_list should be dict
         for x in data_list:
             if not isinstance(x, dict):
-                self.error_report('Invalid field in "DATA" {}'.format(data_list))
+                self.error_report('Invalid field in "{}}" {}'.format(Vdev.DATA_FIELD, data_list))
                 return ""
         
             # Check if all fields are defined in device type dict
@@ -318,7 +321,11 @@ class Vdev:
         self._push_dict_to_platform(data_dic)
 
     def _create_response_dict(self, data_list):
-        return dict(DATA=data_list)
+        data = data_list
+        if self.loop:
+            data = data_list[0]
+
+        return {Vdev.DATA_FIELD:data}
 
     def _push_dict_to_platform(self, data_dic):
         

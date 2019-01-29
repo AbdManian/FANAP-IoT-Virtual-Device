@@ -5,7 +5,19 @@ VDev communicates with platform through MQTT.
 
 ## Requirements
   - python3
-  - paho-mqtt
+  - python paho-mqtt
+  - virtualenv (required when using with virtualenv)
+
+## How to run
+```console
+
+  virtualenv -p python3 env
+  source env/bin/activate
+
+  git clone SERVER/iot-hardware-virtual-device vdev
+  cd vdev
+  pip install -r requirements.txt
+```
 
 
 ## How to Use
@@ -31,7 +43,7 @@ Example for device description:
 ```
 
 - `device_id` can be replaced by `-D` argument from command line
-- `enc_key` cand be replaced by `-k` argument from command line
+- `enc_key` can be replaced by `-k` argument from command line
 - Encryption key `enc_key` should be 8 byte string
 
 ### Platform Description
@@ -54,22 +66,24 @@ VDev can be used in tow mode:
 - **Tx Mode** Push device data to the platform.
 - **Subscribe Mode** Subscribe to MQTT for getting commands from platform. In GUI mode user can change device data and update the platform.
 
+**NOTE:** VDev only works with python-3. In Linux calling `python3 run_vdev` may required (if multiple Python versions is installed). Also in Linux terminal `./run_vdev` can be used.  
 
 To run VDev use `run_vdev` in terminal. Check command line arguments with:
-    
-    ./run_dev -h
+
+    python run_vdev.py -h
 
 ```console
-usage: run_vdev [-h] [-p platform_file] [-d device_file] [-D device-id]
-                [-k encryption-key] [-txmodule script.py] [-gui] [-loop]
-                [param_value [param_value ...]]
+usage: run_vdev.py [-h] [-p platform_file] [-d device_file] [-D device-id]
+                   [-k encryption-key] [-txmodule script.py] [-gui] [-loop]
+                   [param_value [param_value ...]]
 
 Virtual Device simulator
 
 positional arguments:
   param_value          Commands for sending to the platform. Format
-                       PARAM=VALUE, use PARAM=\"STRING_VAL\" for string
-                       values.
+                       PARAM=VALUE, use PARAM=\"STRING_VAL\" or
+                       PARAM='"STRING_VAL"' for string values. In MS Windows
+                       use PARAM="""STRING_VAL"""
 
 optional arguments:
   -h, --help           show this help message and exit
@@ -90,23 +104,23 @@ optional arguments:
 In simple mode data for platform, determined in command line. Use `NAME=VALUE` for 
 updating field `NAME` with `VALUE` in platform. Multiple data/value pair can be use in single command.
 
-    ./run_dev NAME=VALUE NAME2=VALUE2
+    python run_vdev.py NAME=VALUE NAME2=VALUE2
 
 For each data type consider following format
 
-- **String** `NAME=\"asdf\"` (Use \\" to prevent terminal replacement)
+- **String** `NAME='"VALUE"'` (Use ' to prevent terminal replacement. In MS Windows use `NAME="""VALUE"""`)
 - **Enum** Same as string
 - **Number** Use ordinary number values
 - **Boolean** Use `true` or `false`
 
 Example:
 
-    ./run_dev string_field=\"value1\" number_field=-23.24 boolean_field=false enum_field=\"VALUE\"
+    python run_vdev.py string_field=\"value1\" number_field=-23.24 boolean_field=false enum_field='"VALUE"'
 
 For sending periodic data `-txmodule` can be used. In this mode a python script is 
 provided for generating periodic data.
 
-    ./run_dev -txmodule test_scenario.py
+    python run_vdev.py -txmodule test_scenario.py
 
 ```python
 # test_scenario.py
@@ -140,7 +154,7 @@ def gen_NAME3(dev_type_dic, user_data={}):
 ## Subscribe Mode
 In subscribe mode, VDev listens for messages from platform.
 
-    ./run_vdev -d device.json -p platform.json
+    python run_vdev.py -d device.json -p platform.json
 
 ```console
 2018-10-01 19:10:00,923:vdev:INFO:Connect to localhost:1883
@@ -153,10 +167,25 @@ In subscribe mode, VDev listens for messages from platform.
 
 For sending data to the platform, gui mode can be used. Gui is enabled with `-gui` switch.
 
-    ./run_vdev -gui -d device.json -p platform.json
+    python run_vdev.py -gui -d device.json -p platform.json
 
 ![Example GUI](gui.png)
 
+# Use VDev in MS Windows
 
+Install requirements:
+- Install Python3 (v3.7 is tested) and enable "Add to path" option
+- Install MQTT client
+```    
+pip install paho-mqtt
+```
 
+## Execution
+First go the VDev directory (from Windows command line)
 
+    cd /d PROJECT_DIR
+
+Execute VDev from command line:
+```
+python run_vdev.py -gui
+```

@@ -10,9 +10,15 @@ logger = logging.getLogger(__name__)
 
 class Vui:
 
-    def __init__(self,  master, type_list, device_id):
+    def __init__(self,  master, type_list, device_id, loop_mode):
         self.master = master
-        self.master.title("Virtual Device v??")
+
+        loop_msg = ""
+        if loop_mode:
+            loop_msg = " (Looped Mode)"
+
+
+        self.master.title("Virtual Device v0.1"+loop_msg)
         self.device_id = device_id
         self.vdev_update = None
         self.create_device_table(type_list, device_id)
