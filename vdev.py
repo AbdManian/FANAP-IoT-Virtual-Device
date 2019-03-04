@@ -322,8 +322,8 @@ class Vdev:
 
     def _create_response_dict(self, data_list):
         data = data_list
-        if self.loop:
-            data = data_list[0]
+        #if self.loop:
+        #    data = data_list[0]
 
         return {Vdev.DATA_FIELD:data}
 
